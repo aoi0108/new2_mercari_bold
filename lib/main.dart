@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 
 void main() {
@@ -31,9 +29,8 @@ class ProductGridPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        actions: [
-          Container(
-              child: Row(children: [
+        title: Row(
+          children: [
             CircleAvatar(
               backgroundImage: AssetImage('assets/avatar.png'), // ユーザーのアイコン
             ),
@@ -41,21 +38,22 @@ class ProductGridPage extends StatelessWidget {
             Chip(
               avatar: Icon(Icons.monetization_on, color: Colors.yellow),
               label: Text('\$20.00'),
-            )
-          ])),
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.shopping_cart),
-            onPressed: () {},
-          ),
-          ElevatedButton(
-            onPressed: () {},
-            child: Text('List on item'),
-          ),
-        ],
+            ),
+            Spacer(), // 左寄せにするために追加
+            IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.shopping_cart),
+              onPressed: () {},
+            ),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text('List on item'),
+            ),
+          ],
+        ),
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(8.0),
@@ -71,20 +69,10 @@ class ProductGridPage extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: Image.network(
-                    '', // デモ用の画像URL
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                ListTile(
-                  leading: Icon(Icons.monetization_on, color: Colors.yellow),
-                  title: Text(
-                    '20.00',
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
+                  child: Image.asset('assets/img1.png', fit: BoxFit.cover),
+
+                  // 画像の表示
+                )
               ],
             ),
           );
