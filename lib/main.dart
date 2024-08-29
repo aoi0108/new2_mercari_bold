@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  runApp(const Memorial());
-  // runApp(const MyApp());
+  // runApp(const Memorial());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
 
 // 商品モデルクラス
 class Product {
-  final String id;
+  final int id;
   final String imageUrl;
   final double price;
 
@@ -59,7 +59,7 @@ class _ProductGridPageState extends State<ProductGridPage> {
   }
 
   Future<void> fetchProducts() async {
-    final url = Uri.parse('http://localhost:9000/products'); // 商品リスト取得エンドポイント
+    final url = Uri.parse('http://18.209.231.104:9000/products'); // 商品リスト取得エンドポイント
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -73,8 +73,8 @@ class _ProductGridPageState extends State<ProductGridPage> {
     }
   }
 
-  Future<void> fetchProductDetail(String productId) async {
-    final url = Uri.parse('http://localhost:9000/products/1'); // 商品詳細取得エンドポイント
+  Future<void> fetchProductDetail(int productId) async {
+    final url = Uri.parse('http://18.209.231.104:9000/products/1'); // 商品詳細取得エンドポイント
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
