@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:new2_mercari_bold/memorial.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const Memorial());
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
