@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:new2_mercari_bold/memorial.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const Memorial());
+  // runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
