@@ -71,6 +71,13 @@ flutter:
     - assets/img1.png
     - assets/img2.png
     - assets/mining.png
+    - assets/monster.png
+    - assets/monster2.png
+    - assets/product.png
+    - assets/non-picture.png
+    - assets/background.png
+    - assets/rare.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
