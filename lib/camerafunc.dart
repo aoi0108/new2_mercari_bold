@@ -2,13 +2,16 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:new2_mercari_bold/frame.dart';
-import 'package:new2_mercari_bold/main.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 横向きに固定
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeRight,
+    DeviceOrientation.landscapeLeft,
+  ]);
+
   final cameras = await availableCameras();
   final firstCamera = cameras.first;
   runApp(CameraFunc(
@@ -62,7 +65,7 @@ class _CameraScreenState extends State<CameraScreen> {
     _currentCamera = widget.initialCamera;
     _controller = CameraController(
       _currentCamera,
-      ResolutionPreset.medium,
+      ResolutionPreset.max, // 画面全体に表示するために最大解像度に変更
     );
     _initializeControllerFuture = _controller.initialize();
     _controller.lockCaptureOrientation(DeviceOrientation.landscapeRight);
@@ -83,7 +86,7 @@ class _CameraScreenState extends State<CameraScreen> {
       _currentCamera = newCamera;
       _controller = CameraController(
         _currentCamera,
-        ResolutionPreset.medium,
+        ResolutionPreset.max,
       );
       _initializeControllerFuture = _controller.initialize();
     });
@@ -91,11 +94,8 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Future<void> _toggleFlashMode() async {
     setState(() {
-      if (_flashMode == FlashMode.off) {
-        _flashMode = FlashMode.always; // Turn flash on
-      } else {
-        _flashMode = FlashMode.off; // Turn flash off
-      }
+      _flashMode =
+          _flashMode == FlashMode.off ? FlashMode.always : FlashMode.off;
     });
     await _controller.setFlashMode(_flashMode);
   }
@@ -109,11 +109,9 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _takePicture() async {
-    // 写真を撮る前にフラッシュモードを設定
     await _controller.setFlashMode(_flashMode);
     final image = await _controller.takePicture();
 
-    // 撮影した写真を表示する画面に遷移
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => DisplayPictureScreen(imagePath: image.path),
@@ -124,145 +122,76 @@ class _CameraScreenState extends State<CameraScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductGridPage(),
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          FutureBuilder<void>(
+            future: _initializeControllerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: CameraPreview(_controller),
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            },
+          ),
+          Positioned(
+            top: 30.0,
+            left: 10.0,
+            child: IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 40,
               ),
-            );
-          },
-        ),
-        title: const Text('Camera Preview'),
-      ),
-      body: Center(
-        child: Stack(
-          children: [
-            FutureBuilder<void>(
-              future: _initializeControllerFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  // Get the correct aspect ratio for landscape
-                  var orientation = MediaQuery.of(context).orientation;
-                  double rotationAngle = 0;
-
-                  if (orientation == Orientation.landscape) {
-                    rotationAngle = 90 * 3.14159 / 180;
-                  }
-                  return Transform.rotate(
-                    angle: rotationAngle,
-                    child: Center(
-                      child: AspectRatio(
-                        aspectRatio: _controller.value.aspectRatio,
-                        child: CameraPreview(_controller),
-                      ),
-                    ),
-                  );
-                } else {
-                  return const CircularProgressIndicator();
-                }
+              onPressed: () {
+                Navigator.pop(context);
               },
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).size.height * 0.1,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        _flashMode == FlashMode.off
-                            ? Icons.flash_off
-                            : Icons.flash_on,
-                        color: Colors.black,
-                        size: MediaQuery.of(context).size.width * 0.1,
-                      ),
-                      onPressed: _toggleFlashMode,
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.1),
-                    ShutterButton(
-                      onPressed: () async {
-                        // 写真を撮る
-                        final image = await _controller.takePicture();
-                        showProgressDialog(context);
-                        final pose = await _sendRequest(image);
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  SecondPage(image: image, pose: pose)),
-                        );
-                        Navigator.of(context, rootNavigator: true).pop();
-
-                        // 撮影した写真を表示する画面に遷移
-                        // await Navigator.of(context).push(
-                        //   MaterialPageRoute(
-                        //     builder: (context) =>
-                        //         DisplayPictureScreen(imagePath: image.path),
-                        //   ),
-                        // );
-                      },
-                    ),
-                    SizedBox(width: MediaQuery.of(context).size.width * 0.1),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.flip_camera_android_rounded,
-                        color: Colors.black,
-                        size: 45.0,
-                      ),
-                      onPressed: _onSwitchCamera,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 250.0,
-              right: 20.0,
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // Columnのサイズを内容に合わせる
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      _isZoomed ? Icons.zoom_out : Icons.zoom_in,
-                      color: Colors.black,
-                    ),
-                    onPressed: _toggleZoom,
-                    iconSize: 40.0,
-                    tooltip: _isZoomed ? "Zoom Out" : "Zoom In",
+          ),
+          Positioned(
+            bottom: 30.0,
+            left: 0.0,
+            right: 0.0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    _flashMode == FlashMode.off
+                        ? Icons.flash_off
+                        : Icons.flash_on,
+                    color: Colors.white,
+                    size: 40,
                   ),
-                ],
-              ),
+                  onPressed: _toggleFlashMode,
+                ),
+                ShutterButton(onPressed: _takePicture),
+                IconButton(
+                  icon: const Icon(
+                    Icons.flip_camera_android_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  onPressed: _onSwitchCamera,
+                ),
+                IconButton(
+                  icon: Icon(
+                    _isZoomed ? Icons.zoom_out : Icons.zoom_in,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                  onPressed: _toggleZoom,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
-  }
-
-  Future<String> _sendRequest(XFile file) async {
-    final uri = Uri.parse('http://18.209.231.104:8000/predict');
-    final request = http.MultipartRequest('POST', uri)
-      ..headers['content-type'] = 'multipart/form-data'
-      ..headers['upgrade-insecure-requests'] = '1'
-      ..fields['Content-Disposition'] =
-          'form-data; name="file"; filename="good.jpg"'
-      ..files.add(await http.MultipartFile.fromPath('file', file.path));
-    final response = await http.Response.fromStream(await request.send());
-    if (response.statusCode == 200) {
-      debugPrint('Response: ${response.body}');
-      final responseData = json.decode(response.body);
-      return responseData['message'];
-    } else {
-      debugPrint('Error: ${response.reasonPhrase}');
-      return 'unknown';
-    }
   }
 }
 
@@ -314,19 +243,4 @@ class ShutterButton extends StatelessWidget {
       ),
     );
   }
-}
-
-void showProgressDialog(context) {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: false,
-    transitionDuration: Duration.zero, // これを入れると遅延を入れなくて
-    barrierColor: Colors.black.withOpacity(0.5),
-    pageBuilder: (BuildContext context, Animation animation,
-        Animation secondaryAnimation) {
-      return Center(
-        child: CircularProgressIndicator(),
-      );
-    },
-  );
 }
