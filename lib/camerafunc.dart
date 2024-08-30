@@ -17,6 +17,33 @@ Future<void> main() async {
   ));
 }
 
+class DetectionResult {
+  final List<double> box;
+  final String title;
+  final double price;
+  final Size imageSize;
+
+  DetectionResult(
+      {required this.box,
+      required this.title,
+      required this.price,
+      required this.imageSize});
+
+  factory DetectionResult.fromJson(Map<String, dynamic> json) {
+    return DetectionResult(
+      box: [
+        json['box'][0].toDouble(),
+        json['box'][1].toDouble(),
+        json['box'][2].toDouble(),
+        json['box'][3].toDouble()
+      ],
+      title: json['title'],
+      price: json['price'].toDouble(),
+      imageSize: Size(json['width'].toDouble(), json['height'].toDouble()),
+    );
+  }
+}
+
 class CameraFunc extends StatelessWidget {
   const CameraFunc(
       {super.key, required this.cameras, required this.initialCamera});
@@ -191,22 +218,18 @@ class _CameraScreenState extends State<CameraScreen> {
                         // 写真を撮る
                         final image = await _controller.takePicture();
                         showProgressDialog(context);
-                        final pose = await _sendRequest(image);
+                        final DetectionResult res = await _sendRequest(image);
+                        Navigator.of(context, rootNavigator: true).pop();
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  SecondPage(image: image, pose: pose)),
+                              builder: (context) => DetectionFrame(
+                                  image: image,
+                                  box: res.box,
+                                  title: res.title,
+                                  price: res.price,
+                                  imageSize: res.imageSize)),
                         );
-                        Navigator.of(context, rootNavigator: true).pop();
-
-                        // 撮影した写真を表示する画面に遷移
-                        // await Navigator.of(context).push(
-                        //   MaterialPageRoute(
-                        //     builder: (context) =>
-                        //         DisplayPictureScreen(imagePath: image.path),
-                        //   ),
-                        // );
                       },
                     ),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.1),
@@ -246,8 +269,8 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 
-  Future<String> _sendRequest(XFile file) async {
-    final uri = Uri.parse('http://18.209.231.104:8000/predict');
+  Future<DetectionResult> _sendRequest(XFile file) async {
+    final uri = Uri.parse('http://18.209.231.104:7000/detect');
     final request = http.MultipartRequest('POST', uri)
       ..headers['content-type'] = 'multipart/form-data'
       ..headers['upgrade-insecure-requests'] = '1'
@@ -255,14 +278,17 @@ class _CameraScreenState extends State<CameraScreen> {
           'form-data; name="file"; filename="good.jpg"'
       ..files.add(await http.MultipartFile.fromPath('file', file.path));
     final response = await http.Response.fromStream(await request.send());
+    // final response_body = {"title":"Empty Plastic Water Bottle","price":0.99,"box":[445.7776794433594,309.4581298828125,1281.6619873046875,1145.3424072265625]};
     if (response.statusCode == 200) {
       debugPrint('Response: ${response.body}');
-      final responseData = json.decode(response.body);
-      return responseData['message'];
+      final dynamic detectionResultJson = json.decode(response.body);
+      return DetectionResult.fromJson(detectionResultJson);
     } else {
-      debugPrint('Error: ${response.reasonPhrase}');
-      return 'unknown';
+      debugPrint('Error: ${response.statusCode}');
+      return DetectionResult(
+          box: [], title: '', price: 0.0, imageSize: Size(1920, 1080));
     }
+    // return DetectionResult(box: [803.613525390625,485.6523742675781,1384.7322998046875,1066.7711181640625], title: 'Casio Baby-G Tough Solar Watch', price: 0.99, imageSize: Size(1920, 1080));
   }
 }
 
