@@ -57,11 +57,14 @@ class _MyCustomLayoutState extends State<MyCustomLayout> {
                   height: 50,
                   child: Image.asset('assets/rare.png'),
                 ),
-                // SizedBox(height: 5),
                 Container(
                   width: 130,
                   height: 130,
-                  child: Image.asset('assets/monster.png'),
+                  child: Image.asset(
+                    _hp <= 50
+                        ? 'assets/monster-over.png'
+                        : 'assets/monster.png',
+                  ),
                 ),
                 SizedBox(height: 10),
                 Container(
@@ -80,13 +83,11 @@ class _MyCustomLayoutState extends State<MyCustomLayout> {
                 SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {},
-                  child: Text(
-                    'Fight!',
-                  ),
+                  child: Text('Fight!'),
                   style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Color(0xFF5E6DF2)),
-                )
+                ),
               ],
             ),
           ),
@@ -95,32 +96,36 @@ class _MyCustomLayoutState extends State<MyCustomLayout> {
         // 右側4分の3エリア
         Expanded(
           flex: 3,
-          child: Column(
-            children: [
-              // 上部に画像を5枚ディスプレイ
-              Container(
-                height: MediaQuery.of(context).size.height * 0.5,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 5,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Container(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // 上部に画像を5枚ディスプレイ
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.5,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(), // 外側のスクロールに統一
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
                           width: MediaQuery.of(context).size.width * 0.15,
                           child: Center(
-                              child: Image.asset(index == 0
-                                  ? 'assets/product.png'
-                                  : 'assets/non-picture.png'))),
-                    );
-                  },
+                            child: Image.asset(index == 0
+                                ? 'assets/product.png'
+                                : 'assets/non-picture.png'),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              // 下部にスクロール可能なテキストフィールドを8個配置
-              Expanded(
-                child: Padding(
+                // 下部にスクロール可能なテキストフィールドを8個配置
+                Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: ListView(
+                  child: Column(
                     children: [
                       Text(
                         'Description',
@@ -220,10 +225,10 @@ class _MyCustomLayoutState extends State<MyCustomLayout> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        )
+        ),
       ],
     );
   }
