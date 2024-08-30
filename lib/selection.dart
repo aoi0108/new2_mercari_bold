@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:new2_mercari_bold/last-scene.dart';
 
 void main() {
   runApp(SelectionPage());
@@ -82,7 +83,12 @@ class _MyCustomLayoutState extends State<MyCustomLayout> {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MainScreen()),
+                    );
+                  },
                   child: Text('Fight!'),
                   style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,

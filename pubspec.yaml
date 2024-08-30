@@ -82,6 +82,8 @@ flutter:
     - assets/star_fill.png
     - assets/star_empty.png
     - assets/fight_character.png
+    - assets/last.png
+    - assets/last2.png
 
   #   - images/a_dot_ham.jpeg
 
