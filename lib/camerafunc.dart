@@ -2,6 +2,9 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:new2_mercari_bold/frame.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +21,33 @@ Future<void> main() async {
     cameras: cameras,
     initialCamera: firstCamera,
   ));
+}
+
+class DetectionResult {
+  final List<double> box;
+  final String title;
+  final double price;
+  final Size imageSize;
+
+  DetectionResult(
+      {required this.box,
+        required this.title,
+        required this.price,
+        required this.imageSize});
+
+  factory DetectionResult.fromJson(Map<String, dynamic> json) {
+    return DetectionResult(
+      box: [
+        json['box'][0].toDouble(),
+        json['box'][1].toDouble(),
+        json['box'][2].toDouble(),
+        json['box'][3].toDouble()
+      ],
+      title: json['title'],
+      price: json['price'].toDouble(),
+      imageSize: Size(json['width'].toDouble(), json['height'].toDouble()),
+    );
+  }
 }
 
 class CameraFunc extends StatelessWidget {
@@ -169,7 +199,25 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                   onPressed: _toggleFlashMode,
                 ),
-                ShutterButton(onPressed: _takePicture),
+                ShutterButton(
+                  onPressed: () async {
+                    // 写真を撮る
+                    final image = await _controller.takePicture();
+                    showProgressDialog(context);
+                    final DetectionResult res = await _sendRequest(image);
+                    Navigator.of(context, rootNavigator: true).pop();
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DetectionFrame(
+                              image: image,
+                              box: res.box,
+                              title: res.title,
+                              price: res.price,
+                              imageSize: res.imageSize)),
+                    );
+                  },
+                ),
                 IconButton(
                   icon: const Icon(
                     Icons.flip_camera_android_rounded,
@@ -192,6 +240,27 @@ class _CameraScreenState extends State<CameraScreen> {
         ],
       ),
     );
+  }
+  Future<DetectionResult> _sendRequest(XFile file) async {
+    final uri = Uri.parse('http://18.209.231.104:7000/detect');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['content-type'] = 'multipart/form-data'
+      ..headers['upgrade-insecure-requests'] = '1'
+      ..fields['Content-Disposition'] =
+          'form-data; name="file"; filename="good.jpg"'
+      ..files.add(await http.MultipartFile.fromPath('file', file.path));
+    final response = await http.Response.fromStream(await request.send());
+    // final response_body = {"title":"Empty Plastic Water Bottle","price":0.99,"box":[445.7776794433594,309.4581298828125,1281.6619873046875,1145.3424072265625]};
+    if (response.statusCode == 200) {
+      debugPrint('Response: ${response.body}');
+      final dynamic detectionResultJson = json.decode(response.body);
+      return DetectionResult.fromJson(detectionResultJson);
+    } else {
+      debugPrint('Error: ${response.statusCode}');
+      return DetectionResult(
+          box: [], title: '', price: 0.0, imageSize: Size(1920, 1080));
+    }
+    // return DetectionResult(box: [803.613525390625,485.6523742675781,1384.7322998046875,1066.7711181640625], title: 'Casio Baby-G Tough Solar Watch', price: 0.99, imageSize: Size(1920, 1080));
   }
 }
 
@@ -243,4 +312,19 @@ class ShutterButton extends StatelessWidget {
       ),
     );
   }
+}
+
+void showProgressDialog(context) {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: false,
+    transitionDuration: Duration.zero, // これを入れると遅延を入れなくて
+    barrierColor: Colors.black.withOpacity(0.5),
+    pageBuilder: (BuildContext context, Animation animation,
+        Animation secondaryAnimation) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    },
+  );
 }
