@@ -61,7 +61,11 @@ class _MyCustomLayoutState extends State<MyCustomLayout> {
                 Container(
                   width: 130,
                   height: 130,
-                  child: Image.asset('assets/monster.png'),
+                  child: Image.asset(
+                    _hp <= 50
+                        ? 'assets/monster-over.png'
+                        : 'assets/monster.png',
+                  ),
                 ),
                 SizedBox(height: 10),
                 Container(
