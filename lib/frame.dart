@@ -112,7 +112,7 @@ class DetectionFrame extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SelectionPage(),
+                      builder: (context) => SelectionPage(image: image, box: box, imageSize: imageSize, title: title, price: price),
                     ),
                   );
                 },
