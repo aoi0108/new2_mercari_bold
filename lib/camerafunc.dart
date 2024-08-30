@@ -169,15 +169,45 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                   onPressed: _toggleFlashMode,
                 ),
-                ShutterButton(onPressed: _takePicture),
-                IconButton(
-                  icon: const Icon(
-                    Icons.flip_camera_android_rounded,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                  onPressed: _onSwitchCamera,
-                ),
+
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        _flashMode == FlashMode.off
+                            ? Icons.flash_off
+                            : Icons.flash_on,
+                        color: Colors.black,
+                        size: MediaQuery.of(context).size.width * 0.1,
+                      ),
+                      onPressed: _toggleFlashMode,
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1),
+                    ShutterButton(
+                      onPressed: () async {
+                        // 写真を撮る
+                        final image = await _controller.takePicture();
+                        showProgressDialog(context);
+                        final pose = await _sendRequest(image);
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  SecondPage(image: image, pose: pose)),
+                        );
+                        Navigator.of(context, rootNavigator: true).pop();
+
+                        // 撮影した写真を表示する画面に遷移
+                        // await Navigator.of(context).push(
+                        //   MaterialPageRoute(
+                        //     builder: (context) =>
+                        //         DisplayPictureScreen(imagePath: image.path),
+                        //   ),
+                        // );
+                      },
+                    ),
+                    SizedBox(width: MediaQuery.of(context).size.width * 0.1),
                 IconButton(
                   icon: Icon(
                     _isZoomed ? Icons.zoom_out : Icons.zoom_in,
@@ -186,12 +216,32 @@ class _CameraScreenState extends State<CameraScreen> {
                   ),
                   onPressed: _toggleZoom,
                 ),
+                ShutterButton(onPressed: _takePicture),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<String> _sendRequest(XFile file) async {
+    final uri = Uri.parse('http://18.209.231.104:8000/predict');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['content-type'] = 'multipart/form-data'
+      ..headers['upgrade-insecure-requests'] = '1'
+      ..fields['Content-Disposition'] =
+          'form-data; name="file"; filename="good.jpg"'
+      ..files.add(await http.MultipartFile.fromPath('file', file.path));
+    final response = await http.Response.fromStream(await request.send());
+    if (response.statusCode == 200) {
+      debugPrint('Response: ${response.body}');
+      final responseData = json.decode(response.body);
+      return responseData['message'];
+    } else {
+      debugPrint('Error: ${response.reasonPhrase}');
+      return 'unknown';
+    }
   }
 }
 
