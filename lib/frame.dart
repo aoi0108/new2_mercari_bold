@@ -31,12 +31,13 @@ class DetectionFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(box);
-    print(imageSize);
-    print(MediaQuery.of(context).size);
     final resizedBox = ResizeBox(box, MediaQuery.of(context).size);
-    // final resizedBox = box;
-    print(resizedBox);
+    var rank = 0;
+    if (price > 100) {
+      rank = 2;
+    } else if (price > 3) {
+      rank = 1;
+    }
     return Scaffold(
         body: Row(children: [
       Stack(children: [
@@ -46,25 +47,59 @@ class DetectionFrame extends StatelessWidget {
               width: resizedBox[2] - resizedBox[0],
               height: resizedBox[3] - resizedBox[1],
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.red, width: 2),
+                border: Border.all(color: Colors.yellow, width: 2),
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
             left: resizedBox[0],
             top: resizedBox[1]),
         Positioned(
-            bottom: 10,
+            left: 0,
+            bottom: 0,
             child: Container(
-              color: Colors.white,
-              child: Column(
-                children: [
-                  Text(title),
-                  Text(price.toString()),
-                ],
+              width: MediaQuery.of(context).size.height /
+                  imageSize.height *
+                  imageSize.width,
+              padding: EdgeInsets.all(32),
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        for (var i = 0; i < 3; i++)
+                          Image.asset(
+                            i <= rank
+                                ? 'assets/star_fill.png'
+                                : 'assets/star_empty.png',
+                            width: 24,
+                            height: 24,
+                          )
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    Text(title,
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 4),
+                    Text("を見つけた！", style: TextStyle(fontSize: 14)),
+                  ],
+                ),
               ),
             )),
+        Positioned(
+            child: Image.asset("assets/fight_character.png", width: 110),
+            right: 10,
+            bottom: 8)
       ]),
       Container(
-          padding: EdgeInsets.only(left: 40),
+          padding: EdgeInsets.only(top: 16, left: 24, right: 40, bottom: 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.max,

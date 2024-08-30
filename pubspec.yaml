@@ -79,6 +79,9 @@ flutter:
     - assets/rare.png
     - assets/monster-over.png
     - assets/launch.png
+    - assets/star_fill.png
+    - assets/star_empty.png
+    - assets/fight_character.png
 
   #   - images/a_dot_ham.jpeg
 
