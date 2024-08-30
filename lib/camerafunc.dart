@@ -32,9 +32,9 @@ class DetectionResult {
 
   DetectionResult(
       {required this.box,
-        required this.title,
-        required this.price,
-        required this.imageSize});
+      required this.title,
+      required this.price,
+      required this.imageSize});
 
   factory DetectionResult.fromJson(Map<String, dynamic> json) {
     return DetectionResult(
@@ -162,11 +162,7 @@ class _CameraScreenState extends State<CameraScreen> {
               if (snapshot.connectionState == ConnectionState.done) {
                 return AspectRatio(
                   aspectRatio: _controller.value.aspectRatio,
-                  child:
-                  Transform.rotate(
-                    angle: 90 * pi / 180, // 90度回転
-                    child: CameraPreview(_controller),
-                  )
+                  child: CameraPreview(_controller),
                 );
               } else {
                 return const Center(child: CircularProgressIndicator());
@@ -246,6 +242,7 @@ class _CameraScreenState extends State<CameraScreen> {
       ),
     );
   }
+
   Future<DetectionResult> _sendRequest(XFile file) async {
     final uri = Uri.parse('http://18.209.231.104:7000/detect');
     final request = http.MultipartRequest('POST', uri)

@@ -109,7 +109,6 @@ class _ProductGridPageState extends State<ProductGridPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
         title: Row(
           children: [
             CircleAvatar(
@@ -130,24 +129,26 @@ class _ProductGridPageState extends State<ProductGridPage> {
               onPressed: () {},
             ),
             ElevatedButton(
-              onPressed: () async {
-                // カメラを初期化
-                final cameras = await availableCameras();
-                final firstCamera = cameras.first;
+                onPressed: () async {
+                  // カメラを初期化
+                  final cameras = await availableCameras();
+                  final firstCamera = cameras.first;
 
-                // CameraFunc画面に遷移
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CameraFunc(
-                      cameras: cameras,
-                      initialCamera: firstCamera,
+                  // CameraFunc画面に遷移
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CameraFunc(
+                        cameras: cameras,
+                        initialCamera: firstCamera,
+                      ),
                     ),
-                  ),
-                );
-              },
-              child: Text('List on item'),
-            ),
+                  );
+                },
+                child: Text('List on item'),
+                style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFF5E6DF2))),
           ],
         ),
       ),

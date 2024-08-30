@@ -23,23 +23,28 @@ class MainScreen extends StatelessWidget {
             // 画像を表示するウィジェット
             Image.asset(
               'assets/last2.png', // 画像のパスを指定
-              width: 300, // 画像の幅
-              height: 300, // 画像の高さ
+              width: 200, // 画像の幅
+              height: 200, // 画像の高さ
               fit: BoxFit.cover,
             ),
+            Text(
+              'Excellent! Send the data to your parents!',
+              style: TextStyle(fontSize: 20),
+            ),
             // 画像とボタンの間にスペースを追加せず、隙間を埋める
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 // ボタンが押されたときのアクションをここに書く
                 print('Button Pressed');
               },
-              child: const Text('Fight!', style: TextStyle(fontSize: 18)),
+              child: const Text('Send', style: TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Color(0xFF5E6DF2),
               ),
             ),
-            SizedBox(height: 35), // ボタンの下にスペースを追加
+            SizedBox(height: 20), // ボタンの下にスペースを追加
           ],
         ),
       ),

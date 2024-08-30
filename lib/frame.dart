@@ -88,7 +88,7 @@ class DetectionFrame extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(width: 4),
-                    Text("を見つけた！", style: TextStyle(fontSize: 14)),
+                    Text("を見つけた！", style: TextStyle(fontSize: 9)),
                   ],
                 ),
               ),
