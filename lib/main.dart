@@ -1,11 +1,21 @@
+import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:new2_mercari_bold/camerafunc.dart';
 import 'package:new2_mercari_bold/memorial.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:new2_mercari_bold/product.dart';
+
 void main() {
   // runApp(const Memorial());
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations(
+          [DeviceOrientation.landscapeLeft, DeviceOrientation.landscapeRight])
+      .then((_) {
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -59,7 +69,8 @@ class _ProductGridPageState extends State<ProductGridPage> {
   }
 
   Future<void> fetchProducts() async {
-    final url = Uri.parse('http://18.209.231.104:9000/products'); // 商品リスト取得エンドポイント
+    final url =
+        Uri.parse('http://18.209.231.104:9000/products'); // 商品リスト取得エンドポイント
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -74,13 +85,21 @@ class _ProductGridPageState extends State<ProductGridPage> {
   }
 
   Future<void> fetchProductDetail(int productId) async {
-    final url = Uri.parse('http://18.209.231.104:9000/products/1'); // 商品詳細取得エンドポイント
+    final url =
+        Uri.parse('http://18.209.231.104:9000/products/1'); // 商品詳細取得エンドポイント
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       print('Product Details: $data');
       // 閲覧記録用の処理などもここで行う
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ProductDetailsPage(product: Product.fromJson(data)),
+        ),
+      );
     } else {
       print('Failed to load product details');
     }
@@ -111,7 +130,22 @@ class _ProductGridPageState extends State<ProductGridPage> {
               onPressed: () {},
             ),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                // カメラを初期化
+                final cameras = await availableCameras();
+                final firstCamera = cameras.first;
+
+                // CameraFunc画面に遷移
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CameraFunc(
+                      cameras: cameras,
+                      initialCamera: firstCamera,
+                    ),
+                  ),
+                );
+              },
               child: Text('List on item'),
             ),
           ],
@@ -146,7 +180,7 @@ class _ProductGridPageState extends State<ProductGridPage> {
                               Icon(Icons.monetization_on, color: Colors.yellow),
                           title: Text(
                             product.price.toStringAsFixed(2),
-                            style: TextStyle(fontSize: 13.5),
+                            style: TextStyle(fontSize: 12),
                           ),
                         ),
                       ],

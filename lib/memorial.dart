@@ -13,7 +13,6 @@ class _MemorialState extends State<Memorial> {
   @override
   void initState() {
     super.initState();
-
   }
 
   @override
